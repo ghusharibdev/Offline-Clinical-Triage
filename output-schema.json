@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Clinical Triage Output Schema",
+  "description": "Structured output produced by the Offline Clinical Triage Agent for every patient assessment. Enforced via constrained decoding on-device and validated by the deterministic safety net before display.",
+  "type": "object",
+  "required": [
+    "triage_level",
+    "suspected_conditions",
+    "red_flags",
+    "recommended_action",
+    "confidence_score",
+    "referral_note",
+    "escalate_to_human"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "triage_level": {
+      "type": "string",
+      "enum": ["RED", "ORANGE", "YELLOW", "GREEN"],
+      "description": "Urgency classification. RED = immediate life threat; ORANGE = urgent referral; YELLOW = semi-urgent; GREEN = non-urgent, manage locally."
+    },
+    "suspected_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": { "type": "string" },
+      "description": "Ranked list of the most likely conditions based on symptoms and, if provided, image input."
+    },
+    "red_flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Clinical warning signs detected in the input (e.g., fever with rash, chest pain, altered consciousness). Empty array if none."
+    },
+    "recommended_action": {
+      "type": "string",
+      "description": "Plain-language action for the health worker (e.g., refer immediately to nearest hospital, treat locally and monitor for 48 hours)."
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Model's self-reported confidence in the triage decision. Values below the configured threshold trigger mandatory escalation."
+    },
+    "referral_note": {
+      "type": "string",
+      "description": "Auto-generated, printable referral note containing patient summary, triage level, red flags, and recommended receiving facility."
+    },
+    "escalate_to_human": {
+      "type": "boolean",
+      "description": "True if the deterministic safety net flags this case for human review (low confidence, conflicting rule, or unknown condition)."
+    }
+  },
+  "examples": [
+    {
+      "triage_level": "ORANGE",
+      "suspected_conditions": ["Dengue fever", "Viral exanthem"],
+      "red_flags": ["Fever > 3 days", "Rash", "Nausea"],
+      "recommended_action": "Refer immediately to nearest hospital for dengue screening and platelet count.",
+      "confidence_score": 0.92,
+      "referral_note": "32F, 3-day fever with rash and nausea. Suspected dengue. Refer to district hospital for CBC and NS1 antigen test.",
+      "escalate_to_human": false
+    }
+  ]
+}
